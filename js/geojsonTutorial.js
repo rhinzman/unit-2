@@ -8,14 +8,14 @@ var Stadia_AlidadeSmoothDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/a
 	ext: 'png'
 }).addTo(map);
 
-//Function for each feature and layer pop up 
+//function to pt to map and pop up for Coors field
 function onEachFeature(feature, layer) {
-    // does this feature have a property named popupContent?
+    //features and its content will appear inn the popups. 
     if (feature.properties && feature.properties.popupContent) {
-        layer.bindPopup(feature.properties.popupContent);
+        layer.bindPopup(feature.popupContent);
     }
+}
 
-//add geojson feature to add a point on a map with a popup message 
 var geojsonFeature = {
     "type": "Feature",
     "properties": {
@@ -27,8 +27,11 @@ var geojsonFeature = {
         "type": "Point",
         "coordinates": [-104.99404, 39.75621]
     }
+};
 
-}};
+L.geoJSON(geojsonFeature, {
+    onEachFeature: onEachFeature
+}).addTo(map);
 
 //Add line feature
 var myLines = [{
@@ -48,7 +51,7 @@ var myStyle = {
 L.geoJSON(myLines, {
     style: myStyle
 }).addTo(map);
-//Add a two polygon layer
+//Add a two polygon layer for states
 var states = [{
     "type": "Feature",
     "properties": {"party": "Republican"},
@@ -95,12 +98,13 @@ var geojsonMarkerOptions = {
     opacity: 1,
     fillOpacity: 0.8
 };
-//add the marker to the map 
+//add the marker to the map as a leaflet geojson layer
 L.geoJSON(geojsonFeature, {
     pointToLayer: function (feature, latlng) {
         return L.circleMarker(latlng, geojsonMarkerOptions);
     }
 }).addTo(map);
+
 
 //Adding a geojson feature to display the marker point 
 var geojsonFeature = {
@@ -119,30 +123,26 @@ var geojsonFeature = {
 L.geoJSON(geojsonFeature, {
     onEachFeature: onEachFeature
 }).addTo(map);
-var someFeatures = [{
+
+var geojsonFeature = {
     "type": "Feature",
     "properties": {
         "name": "Coors Field",
-        "show_on_map": true
+        "amenity": "Baseball Stadium",
+        "popupContent": "This is where the Rockies play!"
     },
     "geometry": {
         "type": "Point",
         "coordinates": [-104.99404, 39.75621]
     }
-}, {
-    "type": "Feature",
-    "properties": {
-        "name": "Busch Field",
-        "show_on_map": false
-    },
-    "geometry": {
-        "type": "Point",
-        "coordinates": [-104.98404, 39.74621]
-    }
-}];
+};
+
+L.geoJSON(geojsonFeature, {
+    onEachFeature: onEachFeature
+}).addTo(map);
 
 L.geoJSON(someFeatures, {
     filter: function(feature, layer) {
-        return feature.properties.show_on_map;
+        return feature.properties.popupContentp;
     }
 }).addTo(map);

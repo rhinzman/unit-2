@@ -4,7 +4,7 @@
 var map;
 //function to instantiate the Leaflet map
 function createMap(){
-    //create the map
+    //create the map with the extend and zoom level
     map = L.map('mapid', {
         center: [20, 0],
         zoom: 2
@@ -17,9 +17,9 @@ function createMap(){
 
     //call getData function
     getData();
-  
+    
 };
-//added at Example 2.3 line 20...function to attach popups to each mapped feature
+//function to attach popups to each mapped feature
 function onEachFeature(feature, layer) {
     //no property named popupContent; instead, create html string with all properties
     var popupContent = "";
@@ -42,8 +42,10 @@ function getData(){
         })
         .then(function(json){
             //create a Leaflet GeoJSON layer and add it to the map
-            L.geoJson(json).addTo(map);
-        })
+            L.geoJson(json, {
+                onEachFeature: onEachFeature
+            }).addTo(map);
+        })  
    
         .then(function(json){            
             //create marker options
@@ -55,14 +57,14 @@ function getData(){
                 opacity: 1,
                 fillOpacity: 0.8
             };
-            //create a Leaflet GeoJSON layer and add it to the map
+            //create a Leaflet GeoJSON layer and add it to the map as a circel marker
             L.geoJson(json, {
                 pointToLayer: function (feature, latlng){
                     return L.circleMarker(latlng, geojsonMarkerOptions);
                 }
             }).addTo(map);
         });
-      
         }
+        
 
 document.addEventListener('DOMContentLoaded',createMap)
