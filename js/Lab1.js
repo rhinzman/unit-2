@@ -197,16 +197,6 @@ function updatePropSymbols(attribute){
     });
 };
 
-
-//Import GeoJSON data
-d3.json("mydata.json", function(error, data) {
-    if (error) throw error;
-  
-    data.forEach(function(d) {
-      d.date = parseDate(d.date);
-    });
-  
-  })
 function getData(){
     //load the data
     fetch("data/map.geojson")
