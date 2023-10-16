@@ -1,4 +1,4 @@
-Country Name,Country Code,Series,Per_1980,Per_1985,Per_1990,Per_1995,Per_2000,Per_2005,Per_2010,Latitude,Longitude
+country,Country Code,Series,Per_1980,Per_1985,Per_1990,Per_1995,Per_2000,Per_2005,Per_2010,Latitude,Longitude
 Afghanistan,AFG,Percentage of female population age 15+ with no education,94.59,92.84,91.02,89.25,85.29,84.43,78.24,33.7680065,66.2385139
 Albania,ALB,Percentage of female population age 15+ with no education,27.78,16.4,12.29,15.97,1.71,3.07,4.39,41.000028,19.9999619
 Bahrain,BHR,Percentage of female population age 15+ with no education,49.6,44.09,36.02,31.38,27.44,30.03,30.87,26.1551249,50.5344606

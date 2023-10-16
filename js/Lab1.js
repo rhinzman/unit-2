@@ -197,7 +197,7 @@ function updatePropSymbols(attribute){
     });
 };
 
-function getData(){
+function getData(map){
     //load the data
     fetch("data/map.geojson")
         .then(function(response){
