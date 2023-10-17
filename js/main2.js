@@ -12,13 +12,15 @@ function createMap(){
     });
 
     //add OSM base tilelayer
-    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+   L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
+        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        ext: 'png'
     }).addTo(map);
 
     //call getData function
     getData(map);
 };
+
 //function to calculate data 
 function calculateMinValue(data){
     //create empty array to store all data values
@@ -55,13 +57,13 @@ function pointToLayer(feature, latlng, attributes){
     //Step 4: Assign the current attribute based on the first index of the attributes array
     var attribute = attributes[0];
     //check
-    console.log(attribute);
+    // console.log(attribute);
 
 
     //create marker options
     var options = {
-        fillColor: "#ff7800",
-        color: "#000",
+        fillColor: "#33BEFF",
+        color: "#FFF",
         weight: 1,
         opacity: 1,
         fillOpacity: 0.8
@@ -103,24 +105,51 @@ function createPropSymbols(data, attributes){
     }).addTo(map);
 };
 
-//1.Create new sequence controls
-function createSequenceControls(attributes){
-//2.create range input element (slider)
-    var slider = "<input class='range-slider' type='range'></input>";
-    document.querySelector("#panel").insertAdjacentHTML('beforeend',slider);
-//3.set slider attributes
-document.querySelector(".range-slider").max = 6;
-document.querySelector(".range-slider").min = 0;
-document.querySelector(".range-slider").value = 0;
-document.querySelector(".range-slider").step = 1;
-//4.create the forward and reverse buttons
-document.querySelector('#panel').insertAdjacentHTML('beforeend','<button class="step" id="reverse">Reverse</button>');
-document.querySelector('#panel').insertAdjacentHTML('beforeend','<button class="step" id="forward">Forward</button>');
-//5.adding picture icons to my buttons
-document.querySelector('#reverse').insertAdjacentHTML('beforeend',"<img src='img/reverse.png'>")
-document.querySelector('#forward').insertAdjacentHTML('beforeend',"<img src='img/forward.png'>")
+//Create new sequence controls
+function createSequenceControls(attributes){   
+    
+    var SequenceControl = L.Control.extend({
+        options: {
+            position: 'bottomleft'
+        },
 
+        onAdd: function () {
+            // create the control container div with a particular class name
+            var container = L.DomUtil.create('div', 'sequence-control-container');
 
+            // ... initialize other DOM elements
+            //create range input element (slider)
+            container.insertAdjacentHTML('beforeend', '<input class="range-slider" type="range">')
+            //add skip buttons
+            container.insertAdjacentHTML('beforeend', '<button class="step" id="reverse" title="Reverse"><img src="img/reverse.png"></button>'); 
+            container.insertAdjacentHTML('beforeend', '<button class="step" id="forward" title="Forward"><img src="img/forward.png"></button>');
+            L.DomEvent.disableClickPropagation(container);
+            return container;
+        }
+    });
+
+    map.addControl(new SequenceControl());    // add listeners after adding control}
+    function createLegend(attributes){
+        var LegendControl = L.Control.extend({
+            options: {
+                position: 'bottomright'
+            },
+    
+            onAdd: function () {
+                // create the control container with a particular class name
+                var container = L.DomUtil.create('div', 'legend-control-container');
+                var attribute = attributes[0]
+            legendContent = new LegendContent(attribute)
+            container.insertAdjacentHTML('beforeend', legendContent.formatted);
+    
+                //PUT YOUR SCRIPT TO CREATE THE TEMPORAL LEGEND HERE
+    
+                return container;
+            }
+        });
+    
+        map.addControl(new LegendControl());
+    };
 //click listener for buttons
 document.querySelectorAll('.step').forEach(function(step){
     step.addEventListener("click", function(){
@@ -189,6 +218,7 @@ function updatePropSymbols(attribute){
             var year = attribute.split("_")[1];
             popupContent += "<p><b>Population in " + year + ":</b> " + props[attribute] + " million</p>";
 
+
             //update popup content            
             popup = layer.getPopup();            
             popup.setContent(popupContent).update();
@@ -199,6 +229,8 @@ function updatePropSymbols(attribute){
 
 //Import GeoJSON data
 function getData(map){
+    
+
     //load the data
     fetch("data/MegaCities.geojson")
         .then(function(response){
@@ -211,6 +243,7 @@ function getData(map){
             //call function to create proportional symbols
             createPropSymbols(json,attributes);
             createSequenceControls(attributes);
+            createLegend(attributes);
             
         })
 };
