@@ -129,27 +129,11 @@ function createSequenceControls(attributes){
     });
 
     map.addControl(new SequenceControl());    // add listeners after adding control}
-    function createLegend(attributes){
-        var LegendControl = L.Control.extend({
-            options: {
-                position: 'bottomright'
-            },
+
+   
     
-            onAdd: function () {
-                // create the control container with a particular class name
-                var container = L.DomUtil.create('div', 'legend-control-container');
-                var attribute = attributes[0]
-            legendContent = new LegendContent(attribute)
-            container.insertAdjacentHTML('beforeend', legendContent.formatted);
-    
-                //PUT YOUR SCRIPT TO CREATE THE TEMPORAL LEGEND HERE
-    
-                return container;
-            }
-        });
-    
-        map.addControl(new LegendControl());
-    };
+    //     map.addControl(new LegendControl());
+    // };
 //click listener for buttons
 document.querySelectorAll('.step').forEach(function(step){
     step.addEventListener("click", function(){
@@ -226,6 +210,31 @@ function updatePropSymbols(attribute){
     });
 };
 
+function createLegend(attributes){
+    var LegendControl = L.Control.extend({
+        options: {
+            position: 'bottomright'
+        },
+
+        onAdd: function () {
+            // create the control container with a particular class name
+            var container = L.DomUtil.create('div', 'legend-control-container');
+
+            container.innerHTML = '<p class="temporalLegend">Population in <span class="year">1980</span></p>';
+
+            //Step 1: start attribute legend svg string
+            var svg = '<svg id="attribute-legend" width="130px" height="130px">';
+
+            //add attribute legend svg to container
+            container.innerHTML += svg;
+
+            return container;
+        }
+    });
+
+    map.addControl(new LegendControl());
+
+};
 
 //Import GeoJSON data
 function getData(map){
@@ -243,7 +252,8 @@ function getData(map){
             //call function to create proportional symbols
             createPropSymbols(json,attributes);
             createSequenceControls(attributes);
-            createLegend(attributes);
+            createLegend(attributes)
+            // createLegend(attributes);
             
         })
 };

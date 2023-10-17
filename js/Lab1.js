@@ -12,7 +12,7 @@ function createMap(){
     });
 
     //add OSM base tilelayer
-    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
+   L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.{ext}', {
         attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         ext: 'png'
     }).addTo(map);
@@ -20,15 +20,16 @@ function createMap(){
     //call getData function
     getData(map);
 };
+
 //function to calculate data 
 function calculateMinValue(data){
     //create empty array to store all data values
     var allValues = [];
-    //loop through each city
+    //loop through each country
     for(var country of data.features){
         //loop through each year
         for(var year = 1980; year <= 2010; year+=5){
-              //get population for current year
+              //get percentage for current year
               var value = country.properties["Per_"+ String(year)];
               //add value to array
               allValues.push(value);
@@ -56,13 +57,13 @@ function pointToLayer(feature, latlng, attributes){
     //Step 4: Assign the current attribute based on the first index of the attributes array
     var attribute = attributes[0];
     //check
-    console.log(attribute);
+    // console.log(attribute);
 
 
     //create marker options
     var options = {
         fillColor: "#33BEFF",
-        color: "#000",
+        color: "#FFF",
         weight: 1,
         opacity: 1,
         fillOpacity: 0.8
@@ -78,11 +79,11 @@ function pointToLayer(feature, latlng, attributes){
     var layer = L.circleMarker(latlng, options);
 
     //build popup content string starting with city...Example 2.1 line 24
-    var popupContent = "<p><b>Country:</b> " + feature.properties.country + "</p>";
+    var popupContent = "<p><b>City:</b> " + feature.properties.country + "</p>";
 
     //add formatted attribute to popup content string
     var year = attribute.split("_")[1];
-    popupContent += "<p><b>Percentage of female age 15+ with no education in " + year + ":</b> " + feature.properties[attribute] + " Percent</p>";
+    popupContent += "<p><b>percentage of female age 15+ with no education " + year + ":</b> " + feature.properties[attribute] + " Percent</p>";
 
     //bind the popup to the circle marker
     layer.bindPopup(popupContent, {
@@ -104,24 +105,35 @@ function createPropSymbols(data, attributes){
     }).addTo(map);
 };
 
-//1.Create new sequence controls
-function createSequenceControls(attributes){
-//2.create range input element (slider)
-    var slider = "<input class='range-slider' type='range'></input>";
-    document.querySelector("#panel").insertAdjacentHTML('beforeend',slider);
-//3.set slider attributes
-document.querySelector(".range-slider").max = 6;
-document.querySelector(".range-slider").min = 0;
-document.querySelector(".range-slider").value = 0;
-document.querySelector(".range-slider").step = 1;
-//4.createw the forward and reverse buttons
-document.querySelector('#panel').insertAdjacentHTML('beforeend','<button class="step" id="reverse">Reverse</button>');
-document.querySelector('#panel').insertAdjacentHTML('beforeend','<button class="step" id="forward">Forward</button>');
-//5.adding picture icons to my buttons
-document.querySelector('#reverse').insertAdjacentHTML('beforeend',"<img src='img/reverse.png'>")
-document.querySelector('#forward').insertAdjacentHTML('beforeend',"<img src='img/forward.png'>")
+//Create new sequence controls
+function createSequenceControls(attributes){   
+    
+    var SequenceControl = L.Control.extend({
+        options: {
+            position: 'bottomleft'
+        },
 
+        onAdd: function () {
+            // create the control container div with a particular class name
+            var container = L.DomUtil.create('div', 'sequence-control-container');
 
+            // ... initialize other DOM elements
+            //create range input element (slider)
+            container.insertAdjacentHTML('beforeend', '<input class="range-slider" type="range">')
+            //add skip buttons
+            container.insertAdjacentHTML('beforeend', '<button class="step" id="reverse" title="Reverse"><img src="img/reverse.png"></button>'); 
+            container.insertAdjacentHTML('beforeend', '<button class="step" id="forward" title="Forward"><img src="img/forward.png"></button>');
+            L.DomEvent.disableClickPropagation(container);
+            return container;
+        }
+    });
+
+    map.addControl(new SequenceControl());    // add listeners after adding control}
+
+   
+    
+    //     map.addControl(new LegendControl());
+    // };
 //click listener for buttons
 document.querySelectorAll('.step').forEach(function(step){
     step.addEventListener("click", function(){
@@ -184,11 +196,12 @@ function updatePropSymbols(attribute){
             layer.setRadius(radius);
 
             //add city to popup content string
-            var popupContent = "<p><b>Country Name:</b> " + props.country + "</p>";
+            var popupContent = "<p><b>Country:</b> " + props.country + "</p>";
 
             //add formatted attribute to panel content string
             var year = attribute.split("_")[1];
             popupContent += "<p><b>Percentage in " + year + ":</b> " + props[attribute] + " Percent</p>";
+
 
             //update popup content            
             popup = layer.getPopup();            
@@ -197,9 +210,38 @@ function updatePropSymbols(attribute){
     });
 };
 
+function createLegend(attributes){
+    var LegendControl = L.Control.extend({
+        options: {
+            position: 'bottomright'
+        },
+
+        onAdd: function () {
+            // create the control container with a particular class name
+            var container = L.DomUtil.create('div', 'legend-control-container');
+
+            container.innerHTML = '<p class="temporalLegend">Population in <span class="year">1980</span></p>';
+
+            //Step 1: start attribute legend svg string
+            var svg = '<svg id="attribute-legend" width="130px" height="130px">';
+
+            //add attribute legend svg to container
+            container.innerHTML += svg;
+
+            return container;
+        }
+    });
+
+    map.addControl(new LegendControl());
+
+};
+
+//Import GeoJSON data
 function getData(map){
+    
+
     //load the data
-    fetch("data/map.geojson")
+    fetch("data/mapdata.geojson")
         .then(function(response){
             return response.json();
         })
@@ -210,6 +252,8 @@ function getData(map){
             //call function to create proportional symbols
             createPropSymbols(json,attributes);
             createSequenceControls(attributes);
+            createLegend(attributes)
+            // createLegend(attributes);
             
         })
 };
