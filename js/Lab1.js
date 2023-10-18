@@ -26,11 +26,11 @@ function calcStats(data){
     //create empty array to store all data values
     var allValues = [];
     //loop through each city
-    for(var city of data.features){
+    for(var City of data.features){
         //loop through each year
         for(var year = 1980; year <= 2020; year+=5){
               //get precipitation for current year
-              var value = city.properties["P_"+ String(year)];
+              var value = City.properties["P_"+ String(year)];
               //add value to array
               allValues.push(value);
         }
@@ -48,11 +48,11 @@ function calculateMinValue(data){
     //create empty array to store all data values
     var allValues = [];
     //loop through each city
-    for(var city of data.features){
+    for(var City of data.features){
         //loop through each year
         for(var year = 1980; year <= 2020; year+=5){
               //get precipitation for current year
-              var value = city.properties["P_"+ String(year)];
+              var value = City.properties["P_"+ String(year)];
               //add value to array
               allValues.push(value);
         }
@@ -175,7 +175,7 @@ document.querySelectorAll('.step').forEach(function(step){
 document.querySelector('.range-slider').addEventListener('input', function(){
     //Step 6: get the new index value
     var index = this.value;
-    console.log(index)
+    
 });
         //update slider
         document.querySelector('.range-slider').value = index;
