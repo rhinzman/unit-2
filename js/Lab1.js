@@ -1,5 +1,6 @@
 //declare map variable globally so all functions have access
 var map;
+var dataStats = {}; 
 var minValue;
 
 //create map function
@@ -21,16 +22,37 @@ function createMap(){
     getData(map);
 };
 
+function calcStats(data){
+    //create empty array to store all data values
+    var allValues = [];
+    //loop through each city
+    for(var city of data.features){
+        //loop through each year
+        for(var year = 1980; year <= 2020; year+=5){
+              //get precipitation for current year
+              var value = city.properties["P_"+ String(year)];
+              //add value to array
+              allValues.push(value);
+        }
+    }
+    //get min, max, mean stats for our array
+    dataStats.min = Math.min(...allValues);
+    dataStats.max = Math.max(...allValues);
+    //calculate meanValue
+    var sum = allValues.reduce(function(a, b){return a+b;});
+    dataStats.mean = sum/ allValues.length;
+
+}    
 //function to calculate data 
 function calculateMinValue(data){
     //create empty array to store all data values
     var allValues = [];
-    //loop through each country
-    for(var country of data.features){
+    //loop through each city
+    for(var city of data.features){
         //loop through each year
-        for(var year = 1980; year <= 2010; year+=5){
-              //get percentage for current year
-              var value = country.properties["Per_"+ String(year)];
+        for(var year = 1980; year <= 2020; year+=5){
+              //get precipitation for current year
+              var value = city.properties["P_"+ String(year)];
               //add value to array
               allValues.push(value);
         }
@@ -44,7 +66,7 @@ function calculateMinValue(data){
 //calculate the radius of each proportional symbol
 function calcPropRadius(attValue) {
     //constant factor adjusts symbol sizes evenly
-    var minRadius = 5;
+    var minRadius = 2;
     //Flannery Apperance Compensation formula
     var radius = 1.0083 * Math.pow(attValue/minValue,0.5715) * minRadius
 
@@ -79,11 +101,11 @@ function pointToLayer(feature, latlng, attributes){
     var layer = L.circleMarker(latlng, options);
 
     //build popup content string starting with city...Example 2.1 line 24
-    var popupContent = "<p><b>City:</b> " + feature.properties.country + "</p>";
+    var popupContent = "<p><b>City:</b> " + feature.properties.City + "</p>";
 
     //add formatted attribute to popup content string
     var year = attribute.split("_")[1];
-    popupContent += "<p><b>percentage of female age 15+ with no education " + year + ":</b> " + feature.properties[attribute] + " Percent</p>";
+    popupContent += "<p><b>precipitation in depth in " + year + ":</b> " + feature.properties[attribute] + " mm per year</p>";
 
     //bind the popup to the circle marker
     layer.bindPopup(popupContent, {
@@ -143,11 +165,11 @@ document.querySelectorAll('.step').forEach(function(step){
         if (step.id == 'forward'){
             index++;
             //if past the last attribute, wrap around to first attribute
-            index = index > 6 ? 0 : index;
+            index = index > 8 ? 0 : index;
         } else if (step.id == 'reverse'){
             index--;
             //if past the first attribute, wrap around to last attribute
-            index = index < 0 ? 6 : index;
+            index = index < 0 ? 8 : index;
         };
         //input listener for slider
 document.querySelector('.range-slider').addEventListener('input', function(){
@@ -157,10 +179,9 @@ document.querySelector('.range-slider').addEventListener('input', function(){
 });
         //update slider
         document.querySelector('.range-slider').value = index;
-        console.log(attributes);
-        console.log(index);
         updatePropSymbols(attributes[index]);
-        console.log('updatePropSymbols');
+        //update temporal legend
+        document.querySelector("span.year").innerHTML = year;
     })
 })
 };
@@ -173,8 +194,8 @@ function processData(data){
 
     //push each attribute name into attributes array
     for (var attribute in properties){
-        //only take attributes with population values
-        if (attribute.indexOf("Per") > -1){
+        //only take attributes with precipitation values
+        if (attribute.indexOf("P") > -1){
             attributes.push(attribute);
         };
     };
@@ -196,11 +217,11 @@ function updatePropSymbols(attribute){
             layer.setRadius(radius);
 
             //add city to popup content string
-            var popupContent = "<p><b>Country:</b> " + props.country + "</p>";
+            var popupContent = "<p><b>City:</b> " + props.City + "</p>";
 
             //add formatted attribute to panel content string
             var year = attribute.split("_")[1];
-            popupContent += "<p><b>Percentage in " + year + ":</b> " + props[attribute] + " Percent</p>";
+            popupContent += "<p><b>Precipitation in " + year + ":</b> " + props[attribute] + " mm per year</p>";
 
 
             //update popup content            
@@ -224,6 +245,29 @@ function createLegend(attributes){
 
             //Step 1: start attribute legend svg string
             var svg = '<svg id="attribute-legend" width="130px" height="130px">';
+            //array of circle names to base loop on
+        var circles = ["max", "mean", "min"];
+
+        //Step 2: loop to add each circle and text to svg string
+        for (var i=0; i<circles.length; i++){
+             //Assign the r and cy attributes            
+             var radius = calcPropRadius(dataStats[circles[i]]);           
+             var cy = 130 - radius;
+            //circle string
+            svg += '<circle class="legend-circle" id="' + circles[i] + 
+            '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="65"/>';
+            //evenly space out labels            
+            var textY = i * 20 + 20;            
+
+            //text string            
+            svg += '<text id="' + circles[i] + '-text" x="65" y="' + textY + '">' + Math.round(dataStats[circles[i]]*100)/100 + " mm per year" + '</text>';
+        };
+
+        //close svg string
+        svg += "</svg>";
+
+        //add attribute legend svg to container
+        container.insertAdjacentHTML('beforeend',svg);
 
             //add attribute legend svg to container
             container.innerHTML += svg;
@@ -241,7 +285,7 @@ function getData(map){
     
 
     //load the data
-    fetch("data/mapdata.geojson")
+    fetch("data/data.geojson")
         .then(function(response){
             return response.json();
         })
@@ -252,10 +296,11 @@ function getData(map){
             //call function to create proportional symbols
             createPropSymbols(json,attributes);
             createSequenceControls(attributes);
-            createLegend(attributes)
-            // createLegend(attributes);
+            createLegend(attributes);
+            calcStats(response);  
+
             
-        })
+        });
 };
 
 document.addEventListener('DOMContentLoaded',createMap)

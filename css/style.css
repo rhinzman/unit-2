@@ -10,6 +10,10 @@
     width: 100%;
     display: inline-block;
     }
+    #svg.attribute-legend{
+        height: 130px;
+        width: 130px;
+    }
     .legend-control-container {  
         width: 300px;  
         height: 40px;  
