@@ -234,7 +234,7 @@ function updatePropSymbols(attribute){
 function createLegend(attributes){
     var LegendControl = L.Control.extend({
         options: {
-            position: 'bottomright'
+            position: 'topright'
         },
 
         onAdd: function () {
@@ -244,33 +244,36 @@ function createLegend(attributes){
             container.innerHTML = '<p class="temporalLegend">Population in <span class="year">1980</span></p>';
 
             //Step 1: start attribute legend svg string
-            var svg = '<svg id="attribute-legend" width="130px" height="130px">';
+            var svg = '<svg id="attribute-legend" width="220px " height="130px">';
+
+            // Add a rect as the first child of the svg
+            svg += '<rect width="100%" height="100%" fill="lightgrey" />';
+
             //array of circle names to base loop on
         var circles = ["max", "mean", "min"];
 
         //Step 2: loop to add each circle and text to svg string
         for (var i=0; i<circles.length; i++){
-             //Assign the r and cy attributes            
-             var radius = calcPropRadius(dataStats[circles[i]]);           
-             var cy = 130 - radius;
+            //Assign the r and cy attributes            
+            var radius = calcPropRadius(dataStats[circles[i]]);           
+            var cy = 120 - radius;
+
             //circle string
             svg += '<circle class="legend-circle" id="' + circles[i] + 
-            '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="65"/>';
-            //evenly space out labels            
-            var textY = i * 20 + 20;            
+            '" r="' + radius + '" cy="' + cy + '" fill="#F47821" fill-opacity="0.8" stroke="#000000" cx="65"/>';
 
-            //text string            
-            svg += '<text id="' + circles[i] + '-text" x="65" y="' + textY + '">' + Math.round(dataStats[circles[i]]*100)/100 + " mm per year" + '</text>';
+            //text string
+            svg += '<text id="' + circles[i] + '-text" x="' + (65 + radius + 20) + '" y="' + cy + '">' + Math.round(dataStats[circles[i]]*100)/100 + " mm per year" + '</text>';
+            
         };
-
         //close svg string
         svg += "</svg>";
 
         //add attribute legend svg to container
         container.insertAdjacentHTML('beforeend',svg);
 
-            //add attribute legend svg to container
-            container.innerHTML += svg;
+            // //add attribute legend svg to container
+            // container.innerHTML += svg;
 
             return container;
         }
@@ -296,9 +299,8 @@ function getData(map){
             //call function to create proportional symbols
             createPropSymbols(json,attributes);
             createSequenceControls(attributes);
+            calcStats(json);  
             createLegend(attributes);
-            calcStats(response);  
-
             
         });
 };
